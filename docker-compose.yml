@@ -1,0 +1,28 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8200:8200"
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - data:/data
+    environment:
+      - DB_PATH=/data/jobs.db
+
+  relay:
+    build: ./relay
+    ports:
+      - "8201:8201"
+
+  # ollama:
+  #   image: ollama/ollama
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama:/root/.ollama
+
+volumes:
+  data:
+  # ollama:

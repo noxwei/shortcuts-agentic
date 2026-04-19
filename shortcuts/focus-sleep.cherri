@@ -1,0 +1,25 @@
+#define name Focus Sleep
+#define glyph moon
+#define color purple
+
+#include 'actions/web'
+#include 'actions/scripting'
+
+const token = prompt("API Token")
+const resp = jsonRequest("https://weixiangs-mac-mini.tail1ef495.ts.net:8443/v1/intent", "POST", {"source": "focus_mode", "text": "Sleep focus activated. Give me a brief summary of what I accomplished today and set a calm tone for rest."}, {"Authorization": "Bearer {token}"})
+const dict = getDictionary(resp)
+const jobId = getValue(dict, "job_id")
+
+repeat i for 8 {
+	wait(3)
+	const pollResp = downloadURL("https://weixiangs-mac-mini.tail1ef495.ts.net:8443/v1/jobs/{jobId}", {"Authorization": "Bearer {token}"})
+	const pollDict = getDictionary(pollResp)
+	const pollStatus = getValue(pollDict, "status")
+	if pollStatus == "done" {
+		const result = getValue(pollDict, "result")
+		showNotification("{result}", "Good Night")
+		output("")
+	}
+}
+
+showNotification("Winding down...", "Sleep Mode")

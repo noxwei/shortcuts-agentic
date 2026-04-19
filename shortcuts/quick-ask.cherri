@@ -1,0 +1,27 @@
+#define name Quick Ask
+#define glyph circledQuestionMark
+#define color orange
+
+#include 'actions/web'
+#include 'actions/scripting'
+
+const token = prompt("API Token")
+const question = prompt("Ask anything")
+
+const resp = jsonRequest("https://weixiangs-mac-mini.tail1ef495.ts.net:8443/v1/intent", "POST", {"source": "control_center", "text": "{question}"}, {"Authorization": "Bearer {token}"})
+const dict = getDictionary(resp)
+const jobId = getValue(dict, "job_id")
+
+repeat i for 8 {
+    wait(3)
+    const pollResp = downloadURL("https://weixiangs-mac-mini.tail1ef495.ts.net:8443/v1/jobs/{jobId}", {"Authorization": "Bearer {token}"})
+    const pollDict = getDictionary(pollResp)
+    const pollStatus = getValue(pollDict, "status")
+    if pollStatus == "done" {
+        const result = getValue(pollDict, "result")
+        show("{result}")
+        output("")
+    }
+}
+
+show("Job {jobId} pending. Check notifications.")

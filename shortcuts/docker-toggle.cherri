@@ -1,0 +1,12 @@
+#define name Docker Toggle
+#define glyph server
+#define color orange
+
+#include 'actions/web'
+#include 'actions/scripting'
+
+const resp = jsonRequest("http://100.71.141.45:4545/docker/toggle", "POST", {"x": "1"}, {"Content-Type": "application/json"})
+const toggleDict = getDictionary(resp)
+const act = getValue(toggleDict, "action")
+const msg = getValue(toggleDict, "message")
+show("{act}: {msg}")

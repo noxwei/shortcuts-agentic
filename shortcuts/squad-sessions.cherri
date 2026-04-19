@@ -1,0 +1,10 @@
+#define name Squad Sessions
+#define glyph command
+#define color darkgray
+
+#include 'actions/web'
+#include 'actions/scripting'
+
+const token = prompt("API Token")
+const resp = downloadURL("https://weixiangs-mac-mini.tail1ef495.ts.net:8443/v1/agents/sessions", {"Authorization": "Bearer {token}"})
+show("Squad Sessions:\n\n{resp}")

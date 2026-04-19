@@ -1,0 +1,12 @@
+#define name Swarm Summary
+#define glyph sparkles
+#define color violet
+
+#include 'actions/web'
+#include 'actions/scripting'
+
+const token = prompt("API Token")
+const resp = jsonRequest("https://weixiangs-mac-mini.tail1ef495.ts.net:8443/v1/agents/summarize", "POST", {}, {"Authorization": "Bearer {token}"})
+const dict = getDictionary(resp)
+const summary = getValue(dict, "summary")
+show("Swarm Summary:\n\n{summary}")

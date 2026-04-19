@@ -1,0 +1,12 @@
+#define name Status Check
+#define glyph heart
+#define color green
+
+#include 'actions/web'
+#include 'actions/scripting'
+
+const token = prompt("API Token")
+const response = downloadURL("https://weixiangs-mac-mini.tail1ef495.ts.net:8443/v1/status", {"Authorization": "Bearer {token}"})
+const dict = getDictionary(response)
+const st = getValue(dict, "status")
+show("Server: {st}")

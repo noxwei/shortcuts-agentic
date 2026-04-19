@@ -1,0 +1,152 @@
+#define name AI Research Assistant
+#define glyph brain
+#define color purple
+
+#include 'actions/web'
+#include 'actions/scripting'
+#include 'actions/text'
+
+// ── Phase 1: Auth & health check ──
+
+const token = prompt("API Token")
+@base = "https://weixiangs-mac-mini.tail1ef495.ts.net:8443"
+
+// Check server status
+const statusResp = downloadURL("{base}/v1/status", {"Authorization": "Bearer {token}"})
+const statusDict = getDictionary(statusResp)
+const serverStatus = getValue(statusDict, "status")
+
+if serverStatus != "ok" {
+	alert("Server status: {serverStatus}\n\nThe server may be down or unreachable.", "Server Error")
+	stop()
+}
+
+// Check budget
+const budgetResp = downloadURL("{base}/v1/budget", {"Authorization": "Bearer {token}"})
+const budgetDict = getDictionary(budgetResp)
+const charsUsed = getValue(budgetDict, "chars_used")
+const charsBudget = getValue(budgetDict, "chars_budget")
+const budgetPct = getValue(budgetDict, "pct")
+
+showNotification("Server: {serverStatus} | Budget: {budgetPct}% ({charsUsed} / {charsBudget})", "Health Check")
+
+// ── Phase 2: Main menu ──
+
+menu "AI Research Assistant" {
+	item "Research Topic":
+		// ── Phase 3a: Research with conversation threading ──
+		const topic = listen()
+
+		// Round 1: initial research
+		const r1Resp = jsonRequest("{base}/v1/intent", "POST", {"source": "research_assistant", "text": "Research this topic: {topic}"}, {"Authorization": "Bearer {token}"})
+		const r1Dict = getDictionary(r1Resp)
+		const r1JobId = getValue(r1Dict, "job_id")
+		const convId = getValue(r1Dict, "conversation_id")
+
+		// Poll round 1
+		@r1Done = false
+		repeat i for 10 {
+			wait(3)
+			const p1Resp = downloadURL("{base}/v1/jobs/{r1JobId}", {"Authorization": "Bearer {token}"})
+			const p1Dict = getDictionary(p1Resp)
+			const p1Status = getValue(p1Dict, "status")
+			if p1Status == "done" {
+				const r1Result = getValue(p1Dict, "result")
+				show("Research Result:\n\n{r1Result}\n\nConversation: {convId}")
+				@r1Done = true
+			}
+		}
+		if r1Done == false {
+			alert("Round 1 timed out for job {r1JobId}.", "Timeout")
+			stop()
+		}
+
+		// Round 2: follow-up (same conversation)
+		const fu1 = listen()
+		const r2Resp = jsonRequest("{base}/v1/intent", "POST", {"source": "research_assistant", "text": "{fu1}", "conversation_id": "{convId}"}, {"Authorization": "Bearer {token}"})
+		const r2Dict = getDictionary(r2Resp)
+		const r2JobId = getValue(r2Dict, "job_id")
+
+		@r2Done = false
+		repeat j for 10 {
+			wait(3)
+			const p2Resp = downloadURL("{base}/v1/jobs/{r2JobId}", {"Authorization": "Bearer {token}"})
+			const p2Dict = getDictionary(p2Resp)
+			const p2Status = getValue(p2Dict, "status")
+			if p2Status == "done" {
+				const r2Result = getValue(p2Dict, "result")
+				show("Follow-up 1:\n\n{r2Result}")
+				@r2Done = true
+			}
+		}
+		if r2Done == false {
+			alert("Follow-up 1 timed out for job {r2JobId}.", "Timeout")
+			stop()
+		}
+
+		// Round 3: second follow-up (same conversation)
+		const fu2 = listen()
+		const r3Resp = jsonRequest("{base}/v1/intent", "POST", {"source": "research_assistant", "text": "{fu2}", "conversation_id": "{convId}"}, {"Authorization": "Bearer {token}"})
+		const r3Dict = getDictionary(r3Resp)
+		const r3JobId = getValue(r3Dict, "job_id")
+
+		@r3Done = false
+		repeat k for 10 {
+			wait(3)
+			const p3Resp = downloadURL("{base}/v1/jobs/{r3JobId}", {"Authorization": "Bearer {token}"})
+			const p3Dict = getDictionary(p3Resp)
+			const p3Status = getValue(p3Dict, "status")
+			if p3Status == "done" {
+				const r3Result = getValue(p3Dict, "result")
+				speak("{r3Result}")
+				show("Follow-up 2:\n\n{r3Result}\n\nConversation {convId} complete (3 rounds).")
+				@r3Done = true
+			}
+		}
+		if r3Done == false {
+			alert("Follow-up 2 timed out for job {r3JobId}.", "Timeout")
+		}
+
+	item "Continue Conversation":
+		// ── Phase 3b: Resume existing conversation ──
+		const existingConvId = prompt("Conversation ID")
+		const contResp = jsonRequest("{base}/v1/intent", "POST", {"source": "research_assistant", "text": "Continue our conversation", "conversation_id": "{existingConvId}"}, {"Authorization": "Bearer {token}"})
+		const contDict = getDictionary(contResp)
+		const contJobId = getValue(contDict, "job_id")
+
+		@contDone = false
+		repeat m for 10 {
+			wait(3)
+			const cpResp = downloadURL("{base}/v1/jobs/{contJobId}", {"Authorization": "Bearer {token}"})
+			const cpDict = getDictionary(cpResp)
+			const cpStatus = getValue(cpDict, "status")
+			if cpStatus == "done" {
+				const contResult = getValue(cpDict, "result")
+				show("Continued Conversation:\n\n{contResult}")
+				@contDone = true
+			}
+		}
+		if contDone == false {
+			alert("Continue timed out for job {contJobId}.", "Timeout")
+		}
+
+	item "Spawn Agent":
+		// ── Phase 3c: Spawn background agent ──
+		const agentTask = listen()
+		const spawnResp = jsonRequest("{base}/v1/agents/spawn", "POST", {"prompt": "{agentTask}"}, {"Authorization": "Bearer {token}"})
+		const spawnDict = getDictionary(spawnResp)
+		const taskId = getValue(spawnDict, "task_id")
+		const branch = getValue(spawnDict, "branch")
+		showNotification("Task: {taskId}\nBranch: {branch}", "Agent Spawned")
+		show("Agent spawned.\n\nTask ID: {taskId}\nBranch: {branch}\n\nYou will be notified when it completes.")
+
+	item "Dashboard":
+		// ── Phase 3d: Combined dashboard ──
+		const agentsResp = downloadURL("{base}/v1/agents", {"Authorization": "Bearer {token}"})
+		const dashBudgetResp = downloadURL("{base}/v1/budget", {"Authorization": "Bearer {token}"})
+		const dashBudgetDict = getDictionary(dashBudgetResp)
+		const dashUsed = getValue(dashBudgetDict, "chars_used")
+		const dashBudget = getValue(dashBudgetDict, "chars_budget")
+		const dashPct = getValue(dashBudgetDict, "pct")
+		show("── Dashboard ──\n\nBudget: {dashUsed} / {dashBudget} chars ({dashPct}%)\n\n── Active Agents ──\n\n{agentsResp}")
+}

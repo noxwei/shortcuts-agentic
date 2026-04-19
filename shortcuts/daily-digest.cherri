@@ -1,0 +1,35 @@
+#define name Daily Digest
+#define glyph sunrise
+#define color orange
+
+#include 'actions/web'
+#include 'actions/scripting'
+
+const token = prompt("API Token")
+
+const resp = downloadURL("https://weixiangs-mac-mini.tail1ef495.ts.net:8443/v1/dashboard", {"Authorization": "Bearer {token}"})
+const dict = getDictionary(resp)
+const error = getValue(dict, "detail")
+
+if error != "" {
+    show("Error: {error}")
+    output("")
+}
+
+const budget = getValue(dict, "budget")
+const budgetDict = getDictionary(budget)
+const used = getValue(budgetDict, "chars_used")
+const limit = getValue(budgetDict, "chars_budget")
+const pct = getValue(budgetDict, "pct")
+
+const agents = getValue(dict, "agents")
+const agentDict = getDictionary(agents)
+const activeCount = getValue(agentDict, "active_count")
+
+const relay = getValue(dict, "relay")
+const relayDict = getDictionary(relay)
+const relayStatus = getValue(relayDict, "status")
+
+const uptime = getValue(dict, "uptime")
+
+notification("Daily Digest\n\nBudget: {used}/{limit} chars ({pct}%)\nActive Agents: {activeCount}\nRelay: {relayStatus}\nUptime: {uptime}")

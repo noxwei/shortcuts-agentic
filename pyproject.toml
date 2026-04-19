@@ -1,0 +1,35 @@
+[project]
+name = "shortcuts-agentic"
+version = "0.1.0"
+description = "Backend for iOS Shortcuts agentic pipeline over Tailscale"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "httpx",
+    "pydantic",
+    "pydantic-settings",
+    "aiosqlite",
+    "structlog",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "pytest",
+    "pytest-asyncio",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

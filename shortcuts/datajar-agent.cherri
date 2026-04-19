@@ -1,0 +1,92 @@
+/*
+ * Data Jar Agent — Shortcuts Agentic
+ *
+ * Uses Data Jar to persist API token and conversation_id across runs.
+ * No prompt on every launch — reads from Data Jar, writes back state.
+ * Demonstrates rawAction for third-party app integration.
+ */
+
+#define name Data Jar Agent
+#define glyph archive
+#define color teal
+
+#include 'actions/web'
+#include 'actions/scripting'
+#include 'actions/text'
+
+// ── Read token from Data Jar (or prompt on first run) ──
+
+rawAction("dk.simonbs.DataJar.GetValueIntent", {
+	"keyPath": "shortcuts-agentic.token"
+})
+const storedToken = getDictionary(ShortcutInput)
+
+if !storedToken {
+	const newToken = prompt("First run: enter your API Token")
+	rawAction("dk.simonbs.DataJar.SetValueIntent", {
+		"keyPath": "shortcuts-agentic.token",
+		"values": "{newToken}"
+	})
+}
+
+// ── Read last conversation_id from Data Jar ──
+
+rawAction("dk.simonbs.DataJar.GetValueIntent", {
+	"keyPath": "shortcuts-agentic.conversation_id"
+})
+
+// ── Main interaction: dictate and send ──
+
+@base = "https://weixiangs-mac-mini.tail1ef495.ts.net:8443"
+const spoken = listen()
+
+menu "Send as..." {
+	item "New Conversation":
+		const resp1 = jsonRequest("{base}/v1/intent", "POST", {"source": "datajar_agent", "text": "{spoken}"}, {"Authorization": "Bearer {storedToken}"})
+		const dict1 = getDictionary(resp1)
+		const jobId1 = getValue(dict1, "job_id")
+		const convId1 = getValue(dict1, "conversation_id")
+
+		rawAction("dk.simonbs.DataJar.SetValueIntent", {
+			"keyPath": "shortcuts-agentic.conversation_id",
+			"values": "{convId1}"
+		})
+
+		repeat i for 8 {
+			wait(3)
+			const poll1 = downloadURL("{base}/v1/jobs/{jobId1}", {"Authorization": "Bearer {storedToken}"})
+			const pd1 = getDictionary(poll1)
+			const ps1 = getValue(pd1, "status")
+			if ps1 == "done" {
+				const res1 = getValue(pd1, "result")
+				speak("{res1}")
+				show("New conversation {convId1}\n\n{res1}")
+				output("")
+			}
+		}
+		show("Job {jobId1} pending. Check notifications.")
+
+	item "Continue Last":
+		rawAction("dk.simonbs.DataJar.GetValueIntent", {
+			"keyPath": "shortcuts-agentic.conversation_id"
+		})
+		const lastConvId = getDictionary(ShortcutInput)
+
+		const resp2 = jsonRequest("{base}/v1/intent", "POST", {"source": "datajar_agent", "text": "{spoken}", "conversation_id": "{lastConvId}"}, {"Authorization": "Bearer {storedToken}"})
+		const dict2 = getDictionary(resp2)
+		const jobId2 = getValue(dict2, "job_id")
+
+		repeat j for 8 {
+			wait(3)
+			const poll2 = downloadURL("{base}/v1/jobs/{jobId2}", {"Authorization": "Bearer {storedToken}"})
+			const pd2 = getDictionary(poll2)
+			const ps2 = getValue(pd2, "status")
+			if ps2 == "done" {
+				const res2 = getValue(pd2, "result")
+				speak("{res2}")
+				show("Continued {lastConvId}\n\n{res2}")
+				output("")
+			}
+		}
+		show("Job {jobId2} pending. Check notifications.")
+}

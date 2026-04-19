@@ -1,0 +1,12 @@
+*.shortcut
+__pycache__/
+.venv/
+.env
+.env.*
+!.env.example
+node_modules/
+relay/node_modules/
+*.db
+*.plist
+CLAUDE.md
+shortcuts/generated/

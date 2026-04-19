@@ -1,0 +1,17 @@
+#define name Spawn Agent
+#define glyph gear
+#define color teal
+
+#include 'actions/web'
+#include 'actions/scripting'
+#include 'actions/text'
+
+const token = prompt("API Token")
+const task = listen()
+
+const resp = jsonRequest("https://weixiangs-mac-mini.tail1ef495.ts.net:8443/v1/agents/spawn", "POST", {"prompt": "{task}"}, {"Authorization": "Bearer {token}"})
+const dict = getDictionary(resp)
+const taskId = getValue(dict, "task_id")
+const branch = getValue(dict, "branch")
+
+show("Agent spawned!\n\nTask: {taskId}\nBranch: {branch}\n\nYou will be notified when it completes.")

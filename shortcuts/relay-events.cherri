@@ -1,0 +1,11 @@
+#define name Relay Events
+#define glyph antenna
+#define color green
+
+#include 'actions/web'
+#include 'actions/scripting'
+
+const resp = downloadURL("http://127.0.0.1:8201/relay/events?limit=10")
+const dict = getDictionary(resp)
+
+show("Recent Relay Events:\n\n{dict}")

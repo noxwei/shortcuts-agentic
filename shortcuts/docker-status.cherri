@@ -1,0 +1,24 @@
+#define name Docker Status
+#define glyph server
+#define color blue
+
+#include 'actions/web'
+#include 'actions/scripting'
+
+const response = downloadURL("http://100.71.141.45:4545/status")
+const dict = getDictionary(response)
+
+const dockerDict = getValue(dict, "docker")
+const running = getValue(dockerDict, "running")
+const stuck = getValue(dockerDict, "stuck")
+const version = getValue(dockerDict, "version")
+
+const containers = getValue(dict, "containers")
+const runCount = getValue(containers, "running_count")
+const stopCount = getValue(containers, "stopped_count")
+
+if running == true {
+	show("Docker: Running\nVersion: {version}\nContainers up: {runCount}\nContainers stopped: {stopCount}")
+} else {
+	show("Docker: DOWN")
+}

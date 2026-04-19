@@ -1,0 +1,13 @@
+#define name Agent Result
+#define glyph magnifyingGlass
+#define color orange
+
+#include 'actions/web'
+#include 'actions/scripting'
+
+const token = prompt("API Token")
+const response = downloadURL("https://weixiangs-mac-mini.tail1ef495.ts.net:8443/v1/jobs/{ShortcutInput}", {"Authorization": "Bearer {token}"})
+const dict = getDictionary(response)
+const status = getValue(dict, "status")
+const result = getValue(dict, "result")
+show("Status: {status}\n\nResult: {result}")

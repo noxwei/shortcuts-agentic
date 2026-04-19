@@ -1,0 +1,23 @@
+#define name Conversation History
+#define glyph chatBubble
+#define color blue
+
+#include 'actions/web'
+#include 'actions/scripting'
+
+const token = prompt("API Token")
+const convId = prompt("Conversation ID")
+
+const resp = downloadURL("https://weixiangs-mac-mini.tail1ef495.ts.net:8443/v1/conversations/{convId}/history", {"Authorization": "Bearer {token}"})
+const dict = getDictionary(resp)
+const error = getValue(dict, "detail")
+
+if error != "" {
+    show("Error: {error}")
+    output("")
+}
+
+const messages = getValue(dict, "messages")
+const count = getValue(dict, "count")
+
+show("Conversation {convId} ({count} messages):\n\n{messages}")

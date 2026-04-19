@@ -1,0 +1,12 @@
+#define name Agent Dashboard
+#define glyph list
+#define color lightblue
+
+#include 'actions/web'
+#include 'actions/scripting'
+
+const token = prompt("API Token")
+const resp = downloadURL("https://weixiangs-mac-mini.tail1ef495.ts.net:8443/v1/agents", {"Authorization": "Bearer {token}"})
+const dict = getDictionary(resp)
+
+show("Active Agents:\n\n{resp}")

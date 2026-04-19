@@ -1,0 +1,25 @@
+#define name Focus Work
+#define glyph briefcase
+#define color purple
+
+#include 'actions/web'
+#include 'actions/scripting'
+
+const token = prompt("API Token")
+const resp = jsonRequest("https://weixiangs-mac-mini.tail1ef495.ts.net:8443/v1/intent", "POST", {"source": "focus_mode", "text": "Work focus activated. Summarize my priorities for today."}, {"Authorization": "Bearer {token}"})
+const dict = getDictionary(resp)
+const jobId = getValue(dict, "job_id")
+
+repeat i for 8 {
+	wait(3)
+	const pollResp = downloadURL("https://weixiangs-mac-mini.tail1ef495.ts.net:8443/v1/jobs/{jobId}", {"Authorization": "Bearer {token}"})
+	const pollDict = getDictionary(pollResp)
+	const pollStatus = getValue(pollDict, "status")
+	if pollStatus == "done" {
+		const result = getValue(pollDict, "result")
+		showNotification("{result}", "Work Mode")
+		output("")
+	}
+}
+
+showNotification("Work mode active. Priorities loading...", "Focus")

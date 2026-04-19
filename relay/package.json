@@ -1,0 +1,13 @@
+{
+  "name": "shortcuts-agentic-relay",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch index.ts",
+    "start": "bun run index.ts"
+  },
+  "dependencies": {
+    "hono": "^4.7.0",
+    "nostr-tools": "^2.23.3"
+  }
+}

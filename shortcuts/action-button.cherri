@@ -1,0 +1,29 @@
+#define name Action Button
+#define glyph microphone
+#define color red
+
+#include 'actions/web'
+#include 'actions/scripting'
+#include 'actions/text'
+
+const token = prompt("API Token")
+const spoken = listen()
+
+const submitResp = jsonRequest("https://weixiangs-mac-mini.tail1ef495.ts.net:8443/v1/intent", "POST", {"source": "action_button", "text": "{spoken}"}, {"Authorization": "Bearer {token}"})
+const submitDict = getDictionary(submitResp)
+const jobId = getValue(submitDict, "job_id")
+
+repeat i for 8 {
+	wait(3)
+	const pollResp = downloadURL("https://weixiangs-mac-mini.tail1ef495.ts.net:8443/v1/jobs/{jobId}", {"Authorization": "Bearer {token}"})
+	const pollDict = getDictionary(pollResp)
+	const pollStatus = getValue(pollDict, "status")
+	if pollStatus == "done" {
+		const result = getValue(pollDict, "result")
+		speak("{result}")
+		show("{result}")
+		output("")
+	}
+}
+
+show("Job {jobId} still pending. You will get a notification when it completes.")

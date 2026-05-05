@@ -1,0 +1,16 @@
+#define name Generate Shortcut
+#define glyph gear
+#define color purple
+
+#include 'actions/web'
+#include 'actions/scripting'
+#include 'actions/text'
+
+const token = prompt("API Token")
+const description = listen()
+
+const resp = jsonRequest("https://weixiangs-mac-mini.tail1ef495.ts.net:8443/v1/shortcuts/generate", "POST", {"description": "{description}"}, {"Authorization": "Bearer {token}"})
+const dict = getDictionary(resp)
+const shortcutId = getValue(dict, "shortcut_id")
+
+show("Generating shortcut...\n\nID: {shortcutId}\n\nYou will get a notification when it is ready to install.")

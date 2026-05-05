@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command' | grep -q 'cherri' && echo '{\"systemMessage\":\"Cherri compiled. If you discovered a new bug or pattern, update CLAUDE.md Critical Bugs and docs/cherri-shortcut-guide.md\"}' || true"
+          }
+        ]
+      }
+    ]
+  }
+}

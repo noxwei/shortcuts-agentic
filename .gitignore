@@ -10,3 +10,4 @@ relay/node_modules/
 *.plist
 CLAUDE.md
 shortcuts/generated/
+.DS_Store
